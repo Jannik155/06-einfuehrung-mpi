@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
        * OUT status: Ergebnis des Empfangens */
       MPI_Recv(output, 80, MPI_CHAR, sender_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       printf("%s\n", output);
+      fflush(stdout); // Sorgt für sofortige Ausgabe
     }
   }
 
@@ -78,6 +79,7 @@ if(rank == size-1){
 MPI_Bcast(&end_after_synchronize, 1, MPI_INT, size - 1, MPI_COMM_WORLD);
 
 printf("[%d] beendet jetzt!\n", rank);
+fflush(stdout); // Sorgt für sofortige Ausgabe
 MPI_Finalize();
 return 0;
   }

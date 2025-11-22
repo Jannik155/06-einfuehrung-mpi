@@ -3,7 +3,7 @@
 #SBATCH --output=test-all-mpi-%j.out
 #SBATCH --ntasks=8
 #SBATCH --time=00:05:00
-#SBATCH --partition=standard
+#SBATCH --partition=west
 
 # Kompilieren
 make
