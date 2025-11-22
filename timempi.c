@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 #include <mpi.h>
 
 int main(int argc, char *argv[])
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
     * IN dest: Rang des Empfängers(Prozesses),
     * IN tag: Nachrichtenerkennung,
     * IN comm: Kommunikator */
-    MPI_Send(output, 80, MPI_CHAR, size - 1, 0, MPI_COMM_WORLD);
+    MPI_Send(output, strlen(output) + 1, MPI_CHAR, size - 1, 0, MPI_COMM_WORLD);
   }
 
   if (size > 1 && rank == size - 1)
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
     }
   }
 
-int end_after_synchronize;
+int end_after_synchronize = 0;
 
 if(rank == size-1){
   end_after_synchronize = 1;
@@ -82,4 +83,4 @@ printf("[%d] beendet jetzt!\n", rank);
 fflush(stdout); // Sorgt für sofortige Ausgabe
 MPI_Finalize();
 return 0;
-  }
+}
