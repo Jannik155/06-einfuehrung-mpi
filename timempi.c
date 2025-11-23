@@ -52,12 +52,47 @@ int main(int argc, char *argv[])
     }
   }
 
-int end_after_synchronize = 0; // ist Teil der MPI_Bcast_Synchronisation
+  /* resv-buffer muss auch für Worker initialisiert sein.
+   * Worker dürfen resv_buffer = NULL haben.
+   * MPI ignoriert ihre recvbuf-Argumente. */
+  int *resv_buffer = NULL; // Array-Speicher für alle Microsekunden der Prozesse(außer master)
+  if (is_master){
+    resv_buffer = (int *)malloc((size) * sizeof(int));
+  }
 
-if(is_master){
-  end_after_synchronize = 1;
-}
+  if (size > 1){
+    /* Gather sammelt Mikrosekunden aller Prozesse, für spätere Min- und Max-Suche */
+    MPI_Gather(&micro_sec, 1, MPI_INT, resv_buffer, 1, MPI_INT, master, MPI_COMM_WORLD);
+  }
 
+  if (is_master){
+
+    int min_micro_sec = resv_buffer[0];
+    int max_micro_sec = resv_buffer[0];
+
+    for (int i = 1; i < size - 1; i++)
+    {
+      if (resv_buffer[i] < min_micro_sec){
+        min_micro_sec = resv_buffer[i]; // Findet min_micro_sec
+      }
+
+      if (resv_buffer[i] > max_micro_sec){
+        max_micro_sec = resv_buffer[i]; // Findet max_micro_sec
+      }
+    }
+
+    printf("[%d] Kleinster MS - Anteil : %d\n", rank, min_micro_sec);
+    printf("[%d] Größte Differenz : %d\n", rank, (max_micro_sec - min_micro_sec));
+    
+    free(resv_buffer);
+  }
+
+  int end_after_synchronize = 0; // ist Teil der MPI_Bcast_Synchronisation
+
+  if (is_master)
+  {
+    end_after_synchronize = 1;
+  }
 /*
  * MPI_Bcast synchronisiert alle Prozesse:
  * - Root/master sendet den Wert
@@ -67,9 +102,8 @@ MPI_Bcast(&end_after_synchronize, 1, MPI_INT, master, MPI_COMM_WORLD);
 
 printf("[%d] beendet jetzt!\n", rank);
 
+// Barrier als Synchronisation auch möglich
+// MPI_Barrier(MPI_COMM_WORLD);
 MPI_Finalize();
 return 0;
 }
-
-//printf("%s\n", output);
-//printf("%d\n", micro_sec);
